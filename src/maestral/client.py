@@ -115,7 +115,7 @@ class _DropboxSDK(Dropbox):
         request_binary: bytes | Iterator[bytes] | None,
         timeout: float | None = None,
         extra_headers: dict[str, str] | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> RouteResult | RouteErrorResult:
         # Custom handling to allow for streamed and chunked uploads. This is mostly
         # reproduced from the parent function but without limiting the request body
