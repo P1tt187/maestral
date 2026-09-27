@@ -114,6 +114,8 @@ class _DropboxSDK(Dropbox):
         auth_type: str,
         request_binary: bytes | Iterator[bytes] | None,
         timeout: float | None = None,
+        extra_headers: dict[str, str] | None = None,
+        **kwargs,
     ) -> RouteResult | RouteErrorResult:
         # Custom handling to allow for streamed and chunked uploads. This is mostly
         # reproduced from the parent function but without limiting the request body
@@ -137,6 +139,8 @@ class _DropboxSDK(Dropbox):
 
             headers["Content-Type"] = "application/octet-stream"
             headers["Dropbox-API-Arg"] = request_json_arg
+            if extra_headers:
+                headers.update(extra_headers)
             body = request_binary
 
             if timeout is None:
@@ -170,6 +174,8 @@ class _DropboxSDK(Dropbox):
                 auth_type,
                 request_binary,
                 timeout,
+                extra_headers=extra_headers,
+                **kwargs,
             )
 
 
