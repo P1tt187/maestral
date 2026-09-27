@@ -1,14 +1,18 @@
+import ast
+import inspect
+import textwrap
 from datetime import datetime, timezone
 from unittest.mock import Mock
 
 import pytest
 import requests
-from dropbox import common, files, sharing, team_common, users, users_common
+from dropbox import Dropbox, common, files, sharing, team_common, users, users_common
 from dropbox.oauth import DropboxOAuth2FlowNoRedirect
 
 from maestral import core
 from maestral.client import (
     DropboxClient,
+    _DropboxSDK,
     convert_account,
     convert_full_account,
     convert_metadata,
@@ -88,6 +92,68 @@ def test_unlink_error():
 
     with pytest.raises(NotLinkedError):
         client.unlink()
+
+
+# ==== SDK signature compatibility tests ================================================
+
+
+def keywords_forwarded_by_sdk_retry_wrapper() -> set:
+    """
+    Returns the keyword arguments which the Dropbox SDK passes on to
+    ``request_json_string`` from within ``request_json_string_with_retry``.
+    """
+    source = textwrap.dedent(inspect.getsource(Dropbox.request_json_string_with_retry))
+    for node in ast.walk(ast.parse(source)):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "request_json_string"
+        ):
+            return {kw.arg for kw in node.keywords if kw.arg is not None}
+    raise AssertionError("Found no request_json_string call in the Dropbox SDK.")
+
+
+def test_override_accepts_keywords_forwarded_by_sdk():
+    """
+    Our override of request_json_string must accept every keyword argument which
+    the installed Dropbox SDK forwards to it. Otherwise every API call fails with
+    a TypeError, see https://github.com/samschott/maestral/issues/ for details.
+    """
+    params = inspect.signature(_DropboxSDK.request_json_string).parameters
+    accepts_arbitrary_keywords = any(
+        param.kind is inspect.Parameter.VAR_KEYWORD for param in params.values()
+    )
+    unaccepted = {
+        name
+        for name in keywords_forwarded_by_sdk_retry_wrapper()
+        if name not in params and not accepts_arbitrary_keywords
+    }
+    assert not unaccepted, (
+        f"_DropboxSDK.request_json_string does not accept {sorted(unaccepted)} "
+        f"which the Dropbox SDK forwards to it. All API calls will fail with a "
+        f"TypeError."
+    )
+
+
+def test_override_is_substitutable_for_base_method():
+    """
+    Our override replaces Dropbox.request_json_string and must therefore accept
+    all of its parameters to stay substitutable.
+    """
+    base_params = inspect.signature(Dropbox.request_json_string).parameters
+    own_params = inspect.signature(_DropboxSDK.request_json_string).parameters
+    accepts_arbitrary_keywords = any(
+        param.kind is inspect.Parameter.VAR_KEYWORD for param in own_params.values()
+    )
+    missing = {
+        name
+        for name in base_params
+        if name not in own_params and not accepts_arbitrary_keywords
+    }
+    assert not missing, (
+        f"_DropboxSDK.request_json_string is missing {sorted(missing)} from the "
+        f"base method which it overrides."
+    )
 
 
 # ==== type conversion tests ===========================================================
