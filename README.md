@@ -3,18 +3,34 @@
 [![Documentation Status](https://readthedocs.org/projects/maestral/badge/?version=latest)](https://maestral.readthedocs.io/en/latest/?badge=latest)
 [![codecov](https://codecov.io/gh/SamSchott/maestral/branch/master/graph/badge.svg?token=V0C7IQ1MAU)](https://codecov.io/gh/SamSchott/maestral)
 
-# Archived
-
-As of 2026-07-28, this project is archived. It's been a fun challenge to develop a
-syncing client, but unfortunately, I find too little time to invest in Maestral these
-days. I've also moved away from using Dropbox myself.
-
-Maestral will still remain usable in the medium term, but will no longer be actively
-maintained or receive updates.
-
 # Maestral <img src="https://raw.githubusercontent.com/SamSchott/maestral/master/src/maestral/resources/maestral.png" align="right" title="Maestral" width="110" height="110">
 
 A light-weight and open-source Dropbox client for macOS and Linux.
+
+> [!IMPORTANT]
+> This is the community fork **[P1tt187/maestral](https://github.com/P1tt187/maestral)** of
+> [samschott/maestral](https://github.com/samschott/maestral), which was archived on
+> 2026-07-28. The original maintainer has moved on, so this fork carries community
+> patches only — new features are out of scope.
+>
+> It exists to keep Maestral working against the current Dropbox API and its Python SDK.
+> The latest release is **[v1.9.7](https://github.com/P1tt187/maestral/releases/tag/v1.9.7)**.
+>
+> On Arch Linux, install it via **[P1tt187/maestral-arch](https://github.com/P1tt187/maestral-arch)**.
+>
+> ### Changes relative to upstream v1.9.6
+>
+> - **Compatibility with Dropbox Python SDK 12.2.2 and newer.** The SDK started passing an
+>   `extra_headers` argument to `request_json_string`, which Maestral's override of that
+>   method did not accept. Every API call raised
+>   `TypeError: _DropboxSDK.request_json_string() got an unexpected keyword argument
+>   'extra_headers'`, and Maestral aborted and paused its own sync.
+> - **Fixed an `AttributeError` in `get_session_lookup_error_msg`.** The branch handling
+>   `UploadSessionAppendError` was unreachable because the earlier branches called
+>   `is_not_closed()`, which only exists on `UploadSessionLookupError`.
+>
+> Upstream's own archive notice, which applies to the original project, is preserved
+> [below](#archived).
 
 ## About
 
@@ -171,3 +187,16 @@ month to offset the cost of an Apple Developer account to sign and notarize the 
 - For the system tray icon on Linux:
   - [gnome-shell-extension-appindicator](https://github.com/ubuntu/gnome-shell-extension-appindicator)
     on Gnome 3.26 and higher
+
+## Archived
+
+The following notice was added by the original maintainer to
+[samschott/maestral](https://github.com/samschott/maestral) and applies to the upstream
+project:
+
+> As of 2026-07-28, this project is archived. It's been a fun challenge to develop a
+> syncing client, but unfortunately, I find too little time to invest in Maestral these
+> days. I've also moved away from using Dropbox myself.
+>
+> Maestral will still remain usable in the medium term, but will no longer be actively
+> maintained or receive updates.

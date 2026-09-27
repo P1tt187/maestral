@@ -1,3 +1,20 @@
+## v1.9.7
+
+This is the first release of the community fork
+[P1tt187/maestral](https://github.com/P1tt187/maestral) of
+[samschott/maestral](https://github.com/samschott/maestral), which was archived on
+2026-07-28. It contains no changes from upstream beyond the two fixes below.
+
+#### Fixed:
+
+- Compatibility with Dropbox Python SDK 12.2.2 and newer. The SDK began passing an
+  `extra_headers` argument to `request_json_string`, which Maestral's override of that
+  method did not accept. Every API call raised a `TypeError` and Maestral aborted and
+  paused its own sync.
+- An `AttributeError` in `get_session_lookup_error_msg`. The branch handling
+  `UploadSessionAppendError` was unreachable because the preceding branches call
+  `is_not_closed()`, which only exists on `UploadSessionLookupError`.
+
 ## v1.9.6
 
 #### Fixed:
